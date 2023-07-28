@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  cosey_database:
+    image: postgres
+    container_name: 'cosey_database'
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: XQSP2A2C
+      POSTGRES_DB: cosey
+    restart: always
