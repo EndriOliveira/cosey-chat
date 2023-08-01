@@ -1,8 +1,22 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Post, Get, UseGuards } from '@nestjs/common';
+import {
+  ApiBody,
+  ApiResponse,
+  ApiTags,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiInternalServerErrorResponse,
+  ApiConflictResponse,
+  ApiSecurity,
+  ApiNotFoundResponse,
+} from '@nestjs/swagger';
+import { CredentialsDto } from './dto/credentials.dto';
 import { CreateUserDto } from './dto/createUser.dto';
 import { AuthService } from './auth.service';
 import { httpErrors } from '../../shared/errors/http-errors';
+import { GetUser } from './decorator/get-user.decorator';
+import { User } from '@prisma/client';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -13,7 +27,7 @@ export class AuthController {
   @ApiBody({ type: CreateUserDto })
   @ApiResponse({
     status: 201,
-    description: 'Registered Succesfully',
+    description: 'Registered Successfully',
     schema: {
       example: {
         id: 'string',
@@ -35,10 +49,39 @@ export class AuthController {
       },
     },
   })
-  @ApiResponse(httpErrors.badRequestError)
-  @ApiResponse(httpErrors.conflictError)
-  @ApiResponse(httpErrors.internalServerError)
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiConflictResponse(httpErrors.conflictError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
   async signup(@Body() createUserDto: CreateUserDto) {
     return await this.authService.createUser(createUserDto);
+  }
+
+  @Post('/signin')
+  @ApiBody({ type: CredentialsDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Logged in Successfully',
+    schema: {
+      example: {
+        accessToken: 'string',
+        refreshToken: 'string',
+      },
+    },
+  })
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  async signIn(@Body() credentialsDto: CredentialsDto) {
+    return await this.authService.signIn(credentialsDto);
+  }
+
+  @Get('/me')
+  @UseGuards(AuthGuard())
+  @ApiSecurity('JWT-auth')
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  async me(@GetUser() user: User) {
+    return user;
   }
 }

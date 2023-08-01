@@ -11,6 +11,11 @@ import { MessageService } from './modules/message/message.service';
 import { FileModule } from './modules/file/file.module';
 import { MessageModule } from './modules/message/message.module';
 import { MessageController } from './modules/message/message.controller';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { WinstonInterceptor } from './interceptors/winston.interceptor';
+import { WinstonModule } from 'nest-winston';
+import { winstonConfig } from './config/wiston.config';
+import { JwtStrategy } from './modules/auth/middleware/jwt.strategy';
 
 @Module({
   imports: [
@@ -20,8 +25,15 @@ import { MessageController } from './modules/message/message.controller';
     RefreshTokenModule,
     MessageModule,
     FileModule,
+    WinstonModule.forRoot(winstonConfig),
   ],
   controllers: [AppController, UserController, MessageController],
-  providers: [ChatGateway, UserService, MessageService],
+  providers: [
+    ChatGateway,
+    UserService,
+    MessageService,
+    JwtStrategy,
+    { provide: APP_INTERCEPTOR, useClass: WinstonInterceptor },
+  ],
 })
 export class AppModule {}

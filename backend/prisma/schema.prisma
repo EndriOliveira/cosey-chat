@@ -10,31 +10,18 @@ datasource db {
 model User {
   id                   String         @id @db.VarChar(255) @default(uuid())
   name                 String         @db.VarChar(255)
-  cpf                  String         @db.VarChar(255) @unique
-  email                String         @db.VarChar(255) @unique
+  cpf                  String         @db.VarChar(255)
+  phone                String         @db.VarChar(255)
+  email                String         @db.VarChar(255)
   password             String         @db.VarChar(255)
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
   active               Boolean        @default(true)
-  phoneId              String?        @db.VarChar(255)
 
-  phone                Phone?         @relation("FK_User_Phone_PhoneId", fields: [phoneId], references: [id], onDelete: SetNull, onUpdate: Cascade)  
   message              Message[]      @relation("FK_Message_User_UserId")
   refreshToken         RefreshToken[] @relation("FK_RefreshToken_User_UserId")
   user1                Chat[]         @relation("FK_Chat_User_User1")
   user2                Chat[]         @relation("FK_Chat_User_User2")
-}
-
-model Phone {
-  id        String   @id @db.VarChar(255) @default(uuid())
-  ddi       String?  @db.VarChar(255)
-  ddd       String   @db.VarChar(255)
-  number    String   @db.VarChar(255)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  active    Boolean  @default(true)
-
-  user      User[]   @relation("FK_User_Phone_PhoneId")
 }
 
 model RefreshToken {

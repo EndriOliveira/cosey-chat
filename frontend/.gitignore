@@ -37,6 +37,7 @@ lerna-debug.log*
 # dotenv environment variables file
 .env
 .env.test
+.env.development
 
 # lock files
 package-lock.json
