@@ -10,4 +10,11 @@ export class FindUsersQueryDto extends BaseQueryParametersDto {
   cpf?: string;
   @ApiProperty({ required: false, description: 'Phone of the user' })
   phone?: string;
+  @ApiProperty({
+    required: false,
+    description: 'Field to be ordered by',
+    enum: ['name', 'email', 'cpf', 'createdAt', 'updatedAt'],
+    default: 'name',
+  })
+  sortBy?: string;
 }

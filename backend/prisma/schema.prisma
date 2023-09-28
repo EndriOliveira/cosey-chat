@@ -8,20 +8,20 @@ datasource db {
 }
 
 model User {
-  id                   String         @id @db.VarChar(255) @default(uuid())
-  name                 String         @db.VarChar(255)
-  cpf                  String         @db.VarChar(255)
-  phone                String         @db.VarChar(255)
-  email                String         @db.VarChar(255)
-  password             String         @db.VarChar(255)
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  active               Boolean        @default(true)
+  id           String         @id @db.VarChar(255) @default(uuid())
+  name         String         @db.VarChar(255)
+  cpf          String         @db.VarChar(255)
+  phone        String         @db.VarChar(255)
+  email        String         @db.VarChar(255)
+  password     String         @db.VarChar(255)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  active       Boolean        @default(true)
 
-  message              Message[]      @relation("FK_Message_User_UserId")
-  refreshToken         RefreshToken[] @relation("FK_RefreshToken_User_UserId")
-  user1                Chat[]         @relation("FK_Chat_User_User1")
-  user2                Chat[]         @relation("FK_Chat_User_User2")
+  message      Message[]      @relation("FK_Message_User_UserId")
+  refreshToken RefreshToken[] @relation("FK_RefreshToken_User_UserId")
+  user1        Chat[]         @relation("FK_Chat_User_User1")
+  user2        Chat[]         @relation("FK_Chat_User_User2")
 }
 
 model RefreshToken {
@@ -31,7 +31,7 @@ model RefreshToken {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   active    Boolean  @default(true)
-  
+
   user      User     @relation("FK_RefreshToken_User_UserId", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
@@ -52,10 +52,10 @@ model Chat {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   active    Boolean    @default(true)
-  
-  message    Message[] @relation("FK_Message_Chat_ChatId")
-  user1      User      @relation("FK_Chat_User_User1", fields: [user1Id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  user2      User      @relation("FK_Chat_User_User2", fields: [user2Id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  message   Message[] @relation("FK_Message_Chat_ChatId")
+  user1     User      @relation("FK_Chat_User_User1", fields: [user1Id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user2     User      @relation("FK_Chat_User_User2", fields: [user2Id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Message {
@@ -68,7 +68,7 @@ model Message {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   active      Boolean  @default(true)
-  
+
   chat        Chat     @relation("FK_Message_Chat_ChatId", fields: [chatId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user        User     @relation("FK_Message_User_UserId", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   file        File     @relation("FK_Message_File_FileId", fields: [fileId], references: [id], onDelete: Cascade, onUpdate: Cascade)

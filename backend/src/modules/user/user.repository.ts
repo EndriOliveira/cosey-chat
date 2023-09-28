@@ -1,30 +1,33 @@
 import { Prisma, User } from '@prisma/client';
 import client from '../../database/client';
-import {
-  ConflictException,
-  InternalServerErrorException,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
 import { CreateUserDto } from '../auth/dto/createUser.dto';
 import { v4 as uuidV4 } from 'uuid';
-import { encryptPassword, verifyPassword } from '../../utils/encryption';
 import { removeNonNumbersCharacters } from '../../utils/removeNonNumbersCharacters';
-import { CredentialsDto } from '../auth/dto/credentials.dto';
-import { generateJwt } from '../../utils/jwt';
-import {
-  createRefreshToken,
-  updateManyRefreshToken,
-} from '../refresh-token/refresh-token.repository';
 import { FindUsersQueryDto } from './dto/findUsersQuery.dto';
+import { UpdateUserDto } from './dto/updateUserDto';
+import { totalPages } from '../../utils/totalPages';
+import { FindUsersResponseDto } from './dto/findUsers.response.dto';
 
 export const getUserById = async (id: string): Promise<User> => {
-  const userById = await client.user.findUnique({
-    where: { id },
-  });
-  if (!userById) throw new NotFoundException('User Not Found');
-  delete userById.password;
-  return userById;
+  try {
+    return (await client.user.findUnique({
+      where: { active: true, id },
+      select: {
+        id: true,
+        active: true,
+        name: true,
+        cpf: true,
+        phone: true,
+        email: true,
+        password: false,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })) as User;
+  } catch (error) {
+    throw new InternalServerErrorException('Internal Server Error');
+  }
 };
 
 export const getOneUser = async <Key extends keyof User>(
@@ -55,104 +58,119 @@ export const createUser = async (
 ): Promise<User> => {
   const { name, phone, cpf, email, password } = createUserDto;
 
-  const userExists = await getOneUser({
-    OR: [
-      { active: true, cpf: removeNonNumbersCharacters(cpf) },
-      { active: true, email },
-    ],
-  });
-  if (userExists) throw new ConflictException('User Already Exists');
-
   try {
-    const user = await client.user.create({
+    return (await client.user.create({
       data: {
         id: uuidV4(),
         name,
         phone: removeNonNumbersCharacters(phone),
         cpf: removeNonNumbersCharacters(cpf),
         email,
-        password: await encryptPassword(password),
+        password,
       },
-    });
-    delete user.password;
-    return user;
+      select: {
+        id: true,
+        active: true,
+        name: true,
+        cpf: true,
+        phone: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })) as User;
   } catch (error) {
     throw new InternalServerErrorException('Internal Server Error');
   }
 };
 
-export const signIn = async (
-  credentialsDto: CredentialsDto,
-): Promise<{ accessToken: string; refreshToken: string }> => {
-  const { email, password } = credentialsDto;
-  const user = await getOneUser({ email, active: true }, ['id', 'password']);
-  if (!user) throw new UnauthorizedException('Invalid Credentials');
-  const passwordMatch = await verifyPassword(password, user.password);
-  if (!passwordMatch) throw new UnauthorizedException('Invalid Credentials');
+export const getUsers = async (
+  query: FindUsersQueryDto,
+): Promise<FindUsersResponseDto> => {
+  let { limit, page, active } = query;
+  const { sortBy, sortType, cpf, email, name, phone } = query;
+  limit = limit || 10;
+  page = page || 1;
+
+  if (active != undefined) {
+    if (/^(true)$/gim.test(`${active}`.replace(' ', ''))) active = true;
+    else if (/^(false)$/gim.test(`${active}`.replace(' ', ''))) active = false;
+    else active = null;
+  }
 
   try {
-    const accessToken = generateJwt(
-      process.env.JWT_ACCESS_TOKEN_SECRET,
-      { id: user.id },
-      process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
-    );
-    const refreshToken = generateJwt(
-      process.env.JWT_REFRESH_TOKEN_SECRET,
-      { id: user.id },
-      process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
-    );
+    const where = {
+      AND: [
+        { active: active != null ? active : undefined },
+        { email: email ? { contains: email, mode: 'insensitive' } : undefined },
+        { name: name ? { contains: name, mode: 'insensitive' } : undefined },
+        {
+          cpf: cpf ? { contains: removeNonNumbersCharacters(cpf) } : undefined,
+        },
+        {
+          phone: phone
+            ? { contains: removeNonNumbersCharacters(phone) }
+            : undefined,
+        },
+      ],
+    } as Prisma.UserWhereInput;
 
-    await updateManyRefreshToken(
-      user.id,
-      { userId: user.id, active: true },
-      { active: false },
-    );
-    await createRefreshToken(refreshToken, user.id);
+    const [users, count] = await client.$transaction([
+      client.user.findMany({
+        where,
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
+        select: {
+          id: true,
+          active: true,
+          name: true,
+          cpf: true,
+          phone: true,
+          email: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: sortBy && sortType ? { [sortBy]: sortType } : undefined,
+      }),
+      client.user.count({ where }),
+    ]);
 
     return {
-      accessToken,
-      refreshToken,
+      users: users as User[],
+      total: Number(count),
+      page: Number(page),
+      pages: Number(totalPages(count, limit)),
     };
   } catch (error) {
     throw new InternalServerErrorException('Internal Server Error');
   }
 };
 
-export const getUsers = async (query: FindUsersQueryDto) => {
-  let { limit, page, active } = query;
-  const { sortBy, sortType, cpf, email, name, phone } = query;
-  limit = limit || 10;
-  page = page || 1;
-  if (active) active = `${active}`.toLowerCase() === 'true' ? true : false;
+export const updateUser = async (
+  user: User,
+  updateUserDto: UpdateUserDto,
+): Promise<User> => {
+  const { name, cpf, phone } = updateUserDto;
 
   try {
-    return await client.user.findMany({
-      where: {
-        AND: [
-          { active },
-          {
-            cpf: cpf
-              ? { contains: removeNonNumbersCharacters(cpf) }
-              : undefined,
-          },
-          {
-            email: email ? { contains: email, mode: 'insensitive' } : undefined,
-          },
-          { name: name ? { contains: name, mode: 'insensitive' } : undefined },
-          {
-            phone: phone
-              ? {
-                  contains: removeNonNumbersCharacters(phone),
-                  mode: 'insensitive',
-                }
-              : undefined,
-          },
-        ],
+    return (await client.user.update({
+      where: { id: user.id },
+      data: {
+        name: name ? name : user.name,
+        cpf: cpf ? removeNonNumbersCharacters(cpf) : user.cpf,
+        phone: phone ? removeNonNumbersCharacters(phone) : user.phone,
       },
-      skip: (Number(page) - 1) * Number(limit),
-      take: Number(limit),
-      orderBy: sortBy ? { [sortBy]: sortType } : undefined,
-    });
+      select: {
+        id: true,
+        active: true,
+        name: true,
+        cpf: true,
+        phone: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })) as User;
   } catch (error) {
     throw new InternalServerErrorException('Internal Server Error');
   }

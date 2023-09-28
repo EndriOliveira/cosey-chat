@@ -1,18 +1,13 @@
 import { Prisma, RefreshToken } from '@prisma/client';
 import client from '../../database/client';
 import { v4 as uuidV4 } from 'uuid';
-import { getUserById } from '../user/user.repository';
-import {
-  NotFoundException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
+import { CreateRefreshTokenDto } from './dto/createRefreshToken.dto';
 
 export const createRefreshToken = async (
-  token: string,
-  userId: string,
+  createRefreshTokenDto: CreateRefreshTokenDto,
 ): Promise<RefreshToken> => {
-  const user = await getUserById(userId);
-  if (!user) throw new NotFoundException('User Not Found');
+  const { token, userId } = createRefreshTokenDto;
 
   try {
     return await client.refreshToken.create({
@@ -28,13 +23,9 @@ export const createRefreshToken = async (
 };
 
 export const updateManyRefreshToken = async (
-  userId: string,
   where: Prisma.RefreshTokenWhereInput,
   updateBody: Prisma.RefreshTokenUpdateInput,
 ): Promise<number> => {
-  const user = await getUserById(userId);
-  if (!user) throw new NotFoundException('User Not Found');
-
   try {
     const result = await client.refreshToken.updateMany({
       where,

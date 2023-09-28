@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './config/wiston.config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import envConfig from './config/env.config';
+import prisma from './database/client';
 
 async function bootstrap() {
   const logger = WinstonModule.createLogger(winstonConfig);
@@ -27,6 +29,14 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api-docs', app, document);
-  await app.listen(process.env.PORT || 3000);
+  prisma
+    .$connect()
+    .then(async () => {
+      logger.log('Connected to Database');
+      await app.listen(envConfig.port);
+    })
+    .catch(() => {
+      logger.error('Could not connect to Database');
+    });
 }
 bootstrap();

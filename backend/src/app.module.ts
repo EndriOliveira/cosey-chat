@@ -6,7 +6,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { UserService } from './modules/user/user.service';
 import { UserController } from './modules/user/user.controller';
 import { UserModule } from './modules/user/user.module';
-import { RefreshTokenModule } from './modules/refresh-token/refresh-token.module';
+import { RefreshTokenModule } from './modules/refreshToken/refreshToken.module';
 import { MessageService } from './modules/message/message.service';
 import { FileModule } from './modules/file/file.module';
 import { MessageModule } from './modules/message/message.module';
@@ -16,6 +16,7 @@ import { WinstonInterceptor } from './interceptors/winston.interceptor';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './config/wiston.config';
 import { JwtStrategy } from './modules/auth/middleware/jwt.strategy';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { JwtStrategy } from './modules/auth/middleware/jwt.strategy';
     RefreshTokenModule,
     MessageModule,
     FileModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     WinstonModule.forRoot(winstonConfig),
   ],
   controllers: [AppController, UserController, MessageController],

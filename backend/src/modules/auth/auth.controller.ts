@@ -17,6 +17,7 @@ import { httpErrors } from '../../shared/errors/http-errors';
 import { GetUser } from './decorator/get-user.decorator';
 import { User } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
+import { SignInResponseDto } from './dto/signIn.response.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -31,28 +32,20 @@ export class AuthController {
     schema: {
       example: {
         id: 'string',
+        active: 'boolean',
         name: 'string',
         cpf: 'string',
+        phone: 'string',
         email: 'string',
-        createdAt: '2000-01-01T00:00:00.000Z',
-        updatedAt: '2000-01-01T00:00:00.000Z',
-        active: true,
-        phone: {
-          id: 'string',
-          ddi: 'string',
-          ddd: 'string',
-          number: 'string',
-          createdAt: '2000-01-01T00:00:00.000Z',
-          updatedAt: '2000-01-01T00:00:00.000Z',
-          active: true,
-        },
+        createdAt: 'dateTime',
+        updatedAt: 'dateTime',
       },
     },
   })
   @ApiBadRequestResponse(httpErrors.badRequestError)
   @ApiConflictResponse(httpErrors.conflictError)
   @ApiInternalServerErrorResponse(httpErrors.internalServerError)
-  async signup(@Body() createUserDto: CreateUserDto) {
+  async signUp(@Body() createUserDto: CreateUserDto): Promise<User> {
     return await this.authService.createUser(createUserDto);
   }
 
@@ -72,16 +65,34 @@ export class AuthController {
   @ApiNotFoundResponse(httpErrors.notFoundError)
   @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
   @ApiInternalServerErrorResponse(httpErrors.internalServerError)
-  async signIn(@Body() credentialsDto: CredentialsDto) {
+  async signIn(
+    @Body() credentialsDto: CredentialsDto,
+  ): Promise<SignInResponseDto> {
     return await this.authService.signIn(credentialsDto);
   }
 
   @Get('/me')
   @UseGuards(AuthGuard())
   @ApiSecurity('JWT-auth')
+  @ApiResponse({
+    status: 200,
+    description: 'User Found Successfully',
+    schema: {
+      example: {
+        id: 'string',
+        active: 'boolean',
+        name: 'string',
+        cpf: 'string',
+        phone: 'string',
+        email: 'string',
+        createdAt: 'dateTime',
+        updatedAt: 'dateTime',
+      },
+    },
+  })
   @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
   @ApiNotFoundResponse(httpErrors.notFoundError)
-  async me(@GetUser() user: User) {
+  async me(@GetUser() user: User): Promise<User> {
     return user;
   }
 }

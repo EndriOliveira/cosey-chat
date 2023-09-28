@@ -3,7 +3,7 @@ import { CreateUserDto } from '../dto/createUser.dto';
 import { BadRequestException } from '@nestjs/common';
 
 export const validateCreateUser = (body: CreateUserDto) => {
-  const User = z.object({
+  const schema = z.object({
     name: z.string().trim().min(2).max(255),
     cpf: z.string().trim().min(11).max(255),
     phone: z.string().trim().min(9).max(255),
@@ -19,7 +19,7 @@ export const validateCreateUser = (body: CreateUserDto) => {
       .max(255),
     passwordConfirmation: z.string().trim().max(255),
   });
-  const validate = User.safeParse(body);
+  const validate = schema.safeParse(body);
   if (!validate['success'])
     throw new BadRequestException(validate['error'].issues);
 };

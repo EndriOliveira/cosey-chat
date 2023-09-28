@@ -2,9 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export abstract class BaseQueryParametersDto {
   @ApiProperty({
-    required: true,
+    required: false,
     description: 'Flag that indicates whether the entity is active or not',
-    default: true,
+    example: true,
   })
   active: boolean;
   @ApiProperty({
@@ -19,8 +19,6 @@ export abstract class BaseQueryParametersDto {
     default: 10,
   })
   limit: number;
-  @ApiProperty({ required: false, description: 'Field to be ordered by' })
-  sortBy: string;
   @ApiProperty({
     required: false,
     enum: ['asc', 'desc'],
