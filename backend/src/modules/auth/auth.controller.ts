@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Get, UseGuards, Delete } from '@nestjs/common';
 import {
   ApiBody,
   ApiResponse,
@@ -18,58 +18,13 @@ import { GetUser } from './decorator/get-user.decorator';
 import { User } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
 import { SignInResponseDto } from './dto/signIn.response.dto';
+import { DeactivateAccountDto } from './dto/deactivateAccount.dto';
+import { MessageResponseDto } from '../../shared/dto/message.response.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
-
-  @Post('/signup')
-  @ApiBody({ type: CreateUserDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Registered Successfully',
-    schema: {
-      example: {
-        id: 'string',
-        active: 'boolean',
-        name: 'string',
-        cpf: 'string',
-        phone: 'string',
-        email: 'string',
-        createdAt: 'dateTime',
-        updatedAt: 'dateTime',
-      },
-    },
-  })
-  @ApiBadRequestResponse(httpErrors.badRequestError)
-  @ApiConflictResponse(httpErrors.conflictError)
-  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
-  async signUp(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return await this.authService.createUser(createUserDto);
-  }
-
-  @Post('/signin')
-  @ApiBody({ type: CredentialsDto })
-  @ApiResponse({
-    status: 200,
-    description: 'Logged in Successfully',
-    schema: {
-      example: {
-        accessToken: 'string',
-        refreshToken: 'string',
-      },
-    },
-  })
-  @ApiBadRequestResponse(httpErrors.badRequestError)
-  @ApiNotFoundResponse(httpErrors.notFoundError)
-  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
-  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
-  async signIn(
-    @Body() credentialsDto: CredentialsDto,
-  ): Promise<SignInResponseDto> {
-    return await this.authService.signIn(credentialsDto);
-  }
 
   @Get('/me')
   @UseGuards(AuthGuard())
@@ -94,5 +49,78 @@ export class AuthController {
   @ApiNotFoundResponse(httpErrors.notFoundError)
   async me(@GetUser() user: User): Promise<User> {
     return user;
+  }
+
+  @Post('/sign-up')
+  @ApiBody({ type: CreateUserDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Registered successfully',
+    schema: {
+      example: {
+        id: 'string',
+        active: 'boolean',
+        name: 'string',
+        cpf: 'string',
+        phone: 'string',
+        email: 'string',
+        createdAt: 'dateTime',
+        updatedAt: 'dateTime',
+      },
+    },
+  })
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiConflictResponse(httpErrors.conflictError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  async signUp(@Body() createUserDto: CreateUserDto): Promise<User> {
+    return await this.authService.createUser(createUserDto);
+  }
+
+  @Post('/sign-in')
+  @ApiBody({ type: CredentialsDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Logged in successfully',
+    schema: {
+      example: {
+        accessToken: 'string',
+        refreshToken: 'string',
+      },
+    },
+  })
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  async signIn(
+    @Body() credentialsDto: CredentialsDto,
+  ): Promise<SignInResponseDto> {
+    return await this.authService.signIn(credentialsDto);
+  }
+
+  @Delete('/deactivate')
+  @UseGuards(AuthGuard())
+  @ApiSecurity('JWT-auth')
+  @ApiResponse({
+    status: 200,
+    description: 'Deactivated successfully',
+    schema: {
+      example: {
+        message: 'string',
+      },
+    },
+  })
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  async deactivateAccount(
+    @GetUser() user: User,
+    @Body() deactivateAccountDto: DeactivateAccountDto,
+  ): Promise<MessageResponseDto> {
+    return await this.authService.deactivateAccount(
+      user.id,
+      deactivateAccountDto,
+    );
   }
 }

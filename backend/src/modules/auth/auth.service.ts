@@ -3,10 +3,11 @@ import {
   ConflictException,
   Injectable,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/createUser.dto';
 import { validateCreateUser } from './schemas/createUser.schema';
-import { createUser, getOneUser } from '../user/user.repository';
+import { createUser, getOneUser, updateUser } from '../user/user.repository';
 import { CredentialsDto } from './dto/credentials.dto';
 import { validateSignIn } from './schemas/credentials.schema';
 import { removeNonNumbersCharacters } from '../../utils/removeNonNumbersCharacters';
@@ -16,6 +17,9 @@ import envConfig from '../../config/env.config';
 import { RefreshTokenService } from '../refreshToken/refreshToken.service';
 import { SignInResponseDto } from './dto/signIn.response.dto';
 import { User } from '@prisma/client';
+import { DeactivateAccountDto } from './dto/deactivateAccount.dto';
+import { validateDeactivateAccount } from './schemas/deactivateAccount.schema';
+import { MessageResponseDto } from '../../shared/dto/message.response.dto';
 
 @Injectable()
 export class AuthService {
@@ -59,6 +63,36 @@ export class AuthService {
         envConfig.jwt.accessExpirationMinutes,
       ),
       refreshToken: await this.refreshTokenService.createRefreshToken(user.id),
+    };
+  }
+
+  async deactivateAccount(
+    userId: string,
+    deactivateAccountDto: DeactivateAccountDto,
+  ): Promise<MessageResponseDto> {
+    validateDeactivateAccount(deactivateAccountDto);
+
+    const user = await getOneUser({ id: userId, active: true }, [
+      'id',
+      'password',
+    ]);
+    if (!user) throw new NotFoundException('User not found');
+
+    const { password, passwordConfirmation } = deactivateAccountDto;
+    if (password !== passwordConfirmation)
+      throw new BadRequestException('Passwords do not match');
+
+    const passwordMatch = await verifyPassword(password, user.password);
+    const passwordConfirmationMatch = await verifyPassword(
+      passwordConfirmation,
+      user.password,
+    );
+    if (!passwordMatch || !passwordConfirmationMatch)
+      throw new UnauthorizedException('Invalid Credentials');
+
+    await updateUser(user.id, { active: false });
+    return {
+      message: 'Account deactivated Successfully',
     };
   }
 }

@@ -5,30 +5,8 @@ import { CreateUserDto } from '../auth/dto/createUser.dto';
 import { v4 as uuidV4 } from 'uuid';
 import { removeNonNumbersCharacters } from '../../utils/removeNonNumbersCharacters';
 import { FindUsersQueryDto } from './dto/findUsersQuery.dto';
-import { UpdateUserDto } from './dto/updateUserDto';
 import { totalPages } from '../../utils/totalPages';
 import { FindUsersResponseDto } from './dto/findUsers.response.dto';
-
-export const getUserById = async (id: string): Promise<User> => {
-  try {
-    return (await client.user.findUnique({
-      where: { active: true, id },
-      select: {
-        id: true,
-        active: true,
-        name: true,
-        cpf: true,
-        phone: true,
-        email: true,
-        password: false,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })) as User;
-  } catch (error) {
-    throw new InternalServerErrorException('Internal Server Error');
-  }
-};
 
 export const getOneUser = async <Key extends keyof User>(
   where: Prisma.UserWhereInput,
@@ -37,6 +15,7 @@ export const getOneUser = async <Key extends keyof User>(
     'active',
     'name',
     'cpf',
+    'phone',
     'email',
     'password',
     'createdAt',
@@ -147,19 +126,13 @@ export const getUsers = async (
 };
 
 export const updateUser = async (
-  user: User,
-  updateUserDto: UpdateUserDto,
+  userId: string,
+  updateUserArgs: Prisma.UserUpdateInput,
 ): Promise<User> => {
-  const { name, cpf, phone } = updateUserDto;
-
   try {
     return (await client.user.update({
-      where: { id: user.id },
-      data: {
-        name: name ? name : user.name,
-        cpf: cpf ? removeNonNumbersCharacters(cpf) : user.cpf,
-        phone: phone ? removeNonNumbersCharacters(phone) : user.phone,
-      },
+      where: { id: userId },
+      data: updateUserArgs,
       select: {
         id: true,
         active: true,

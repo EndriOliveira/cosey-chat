@@ -110,6 +110,6 @@ export class UserController {
     @GetUser() user: User,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
-    return await this.userService.editUser(user, updateUserDto);
+    return await this.userService.editUser(user.id, updateUserDto);
   }
 }

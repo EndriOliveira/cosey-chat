@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export abstract class BaseQueryParametersDto {
+export class BaseQueryParametersDto {
   @ApiProperty({
     required: false,
     description: 'Flag that indicates whether the entity is active or not',
