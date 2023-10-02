@@ -17,6 +17,7 @@ model User {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   active       Boolean        @default(true)
+  slug         String         @db.VarChar(255)
 
   message      Message[]      @relation("FK_Message_User_UserId")
   refreshToken RefreshToken[] @relation("FK_RefreshToken_User_UserId")

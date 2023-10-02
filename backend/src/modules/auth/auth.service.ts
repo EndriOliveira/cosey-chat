@@ -2,12 +2,17 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  UnauthorizedException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/createUser.dto';
 import { validateCreateUser } from './schemas/createUser.schema';
-import { createUser, getOneUser, updateUser } from '../user/user.repository';
+import {
+  createUser,
+  deleteUser,
+  getOneUser,
+  updateUser,
+} from '../user/user.repository';
 import { CredentialsDto } from './dto/credentials.dto';
 import { validateSignIn } from './schemas/credentials.schema';
 import { removeNonNumbersCharacters } from '../../utils/removeNonNumbersCharacters';
@@ -17,9 +22,14 @@ import envConfig from '../../config/env.config';
 import { RefreshTokenService } from '../refreshToken/refreshToken.service';
 import { SignInResponseDto } from './dto/signIn.response.dto';
 import { User } from '@prisma/client';
+import { MessageResponseDto } from '../../shared/dto/message.response.dto';
+import slugify from 'slugify';
+import { generateRandomCode } from '../../utils/generateRandomCode';
+import { validateCPF } from '../../utils/validate-cpf';
 import { DeactivateAccountDto } from './dto/deactivateAccount.dto';
 import { validateDeactivateAccount } from './schemas/deactivateAccount.schema';
-import { MessageResponseDto } from '../../shared/dto/message.response.dto';
+import { DeleteAccountDto } from './dto/deleteAccount.dto';
+import { validateDeleteAccount } from './schemas/deleteAccount.schema';
 
 @Injectable()
 export class AuthService {
@@ -28,9 +38,18 @@ export class AuthService {
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     validateCreateUser(createUserDto);
 
+    const slug = slugify(createUserDto.name, {
+      lower: true,
+      trim: true,
+      replacement: '-',
+    });
+    let userSlug = `${generateRandomCode()}-${slug}`;
+
     const { password, passwordConfirmation } = createUserDto;
     if (password !== passwordConfirmation)
       throw new BadRequestException('Passwords do not match');
+
+    validateCPF(removeNonNumbersCharacters(createUserDto.cpf));
 
     const userExists = await getOneUser({
       OR: [
@@ -40,8 +59,18 @@ export class AuthService {
     });
     if (userExists) throw new ConflictException('User Already Exists');
 
+    let userSlugExists = true;
+    while (userSlugExists) {
+      const user = await getOneUser({
+        slug: userSlug,
+      });
+      if (!user) userSlugExists = false;
+      else userSlug = `${generateRandomCode()}-${slug}`;
+    }
+
     return await createUser({
       ...createUserDto,
+      slug: userSlug,
       password: await encryptPassword(createUserDto.password),
     });
   }
@@ -93,6 +122,36 @@ export class AuthService {
     await updateUser(user.id, { active: false });
     return {
       message: 'Account deactivated Successfully',
+    };
+  }
+
+  async deleteAccount(
+    userId: string,
+    deleteAccountDto: DeleteAccountDto,
+  ): Promise<MessageResponseDto> {
+    validateDeleteAccount(deleteAccountDto);
+
+    const { email, password, passwordConfirmation } = deleteAccountDto;
+    if (password !== passwordConfirmation)
+      throw new BadRequestException('Passwords do not match');
+
+    const user = await getOneUser({ id: userId, email, active: true }, [
+      'id',
+      'password',
+    ]);
+    if (!user) throw new UnauthorizedException('Invalid Credentials');
+
+    const passwordMatch = await verifyPassword(password, user.password);
+    const passwordConfirmationMatch = await verifyPassword(
+      passwordConfirmation,
+      user.password,
+    );
+    if (!passwordMatch || !passwordConfirmationMatch)
+      throw new UnauthorizedException('Invalid Credentials');
+
+    await deleteUser(user.id);
+    return {
+      message: 'Account and all data related deleted successfully',
     };
   }
 }

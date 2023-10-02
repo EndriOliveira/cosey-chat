@@ -20,6 +20,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { SignInResponseDto } from './dto/signIn.response.dto';
 import { DeactivateAccountDto } from './dto/deactivateAccount.dto';
 import { MessageResponseDto } from '../../shared/dto/message.response.dto';
+import { DeleteAccountDto } from './dto/deleteAccount.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -40,6 +41,7 @@ export class AuthController {
         cpf: 'string',
         phone: 'string',
         email: 'string',
+        slug: 'string',
         createdAt: 'dateTime',
         updatedAt: 'dateTime',
       },
@@ -64,6 +66,7 @@ export class AuthController {
         cpf: 'string',
         phone: 'string',
         email: 'string',
+        slug: 'string',
         createdAt: 'dateTime',
         updatedAt: 'dateTime',
       },
@@ -122,5 +125,28 @@ export class AuthController {
       user.id,
       deactivateAccountDto,
     );
+  }
+
+  @Delete('/delete')
+  @UseGuards(AuthGuard())
+  @ApiSecurity('JWT-auth')
+  @ApiResponse({
+    status: 200,
+    description: 'Deleted successfully',
+    schema: {
+      example: {
+        message: 'string',
+      },
+    },
+  })
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  async deleteAccount(
+    @GetUser() user: User,
+    @Body() deleteAccountDto: DeleteAccountDto,
+  ): Promise<MessageResponseDto> {
+    return await this.authService.deleteAccount(user.id, deleteAccountDto);
   }
 }

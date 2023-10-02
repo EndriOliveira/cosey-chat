@@ -7,6 +7,7 @@ import { removeNonNumbersCharacters } from '../../utils/removeNonNumbersCharacte
 import { FindUsersQueryDto } from './dto/findUsersQuery.dto';
 import { totalPages } from '../../utils/totalPages';
 import { FindUsersResponseDto } from './dto/findUsers.response.dto';
+import slugify from 'slugify';
 
 export const getOneUser = async <Key extends keyof User>(
   where: Prisma.UserWhereInput,
@@ -17,6 +18,7 @@ export const getOneUser = async <Key extends keyof User>(
     'cpf',
     'phone',
     'email',
+    'slug',
     'password',
     'createdAt',
     'updatedAt',
@@ -35,7 +37,7 @@ export const getOneUser = async <Key extends keyof User>(
 export const createUser = async (
   createUserDto: CreateUserDto,
 ): Promise<User> => {
-  const { name, phone, cpf, email, password } = createUserDto;
+  const { name, phone, cpf, email, password, slug } = createUserDto;
 
   try {
     return (await client.user.create({
@@ -45,6 +47,7 @@ export const createUser = async (
         phone: removeNonNumbersCharacters(phone),
         cpf: removeNonNumbersCharacters(cpf),
         email,
+        slug,
         password,
       },
       select: {
@@ -54,6 +57,7 @@ export const createUser = async (
         cpf: true,
         phone: true,
         email: true,
+        slug: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -78,11 +82,22 @@ export const getUsers = async (
   }
 
   try {
-    const where = {
+    const where: Prisma.UserWhereInput = {
       AND: [
         { active: active != null ? active : undefined },
         { email: email ? { contains: email, mode: 'insensitive' } : undefined },
         { name: name ? { contains: name, mode: 'insensitive' } : undefined },
+        {
+          slug: name
+            ? {
+                contains: slugify(name, {
+                  lower: true,
+                  replacement: '-',
+                  trim: true,
+                }),
+              }
+            : undefined,
+        },
         {
           cpf: cpf ? { contains: removeNonNumbersCharacters(cpf) } : undefined,
         },
@@ -106,6 +121,7 @@ export const getUsers = async (
           cpf: true,
           phone: true,
           email: true,
+          slug: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -140,10 +156,21 @@ export const updateUser = async (
         cpf: true,
         phone: true,
         email: true,
+        slug: true,
         createdAt: true,
         updatedAt: true,
       },
     })) as User;
+  } catch (error) {
+    throw new InternalServerErrorException('Internal Server Error');
+  }
+};
+
+export const deleteUser = async (userId: string): Promise<void> => {
+  try {
+    await client.user.delete({
+      where: { id: userId },
+    });
   } catch (error) {
     throw new InternalServerErrorException('Internal Server Error');
   }

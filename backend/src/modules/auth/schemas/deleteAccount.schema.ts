@@ -1,9 +1,10 @@
-import { BadRequestException } from '@nestjs/common';
 import { z } from 'zod';
-import { DeactivateAccountDto } from '../dto/deactivateAccount.dto';
+import { BadRequestException } from '@nestjs/common';
+import { DeleteAccountDto } from '../dto/deleteAccount.dto';
 
-export const validateDeactivateAccount = (body: DeactivateAccountDto) => {
+export const validateDeleteAccount = (body: DeleteAccountDto) => {
   const schema = z.object({
+    email: z.string().trim().email(),
     password: z.string().trim().max(255),
     passwordConfirmation: z.string().trim().max(255),
   });

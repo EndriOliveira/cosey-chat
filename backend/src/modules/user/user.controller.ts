@@ -44,6 +44,7 @@ export class UserController {
             cpf: 'string',
             phone: 'string',
             email: 'string',
+            slug: 'string',
             createdAt: 'dateTime',
             updatedAt: 'dateTime',
           },
@@ -61,7 +62,7 @@ export class UserController {
     return await this.userService.getUsers(query);
   }
 
-  @Get('/:id')
+  @Get('/:slug')
   @ApiResponse({
     status: 200,
     description: 'User Found Successfully',
@@ -73,14 +74,15 @@ export class UserController {
         cpf: 'string',
         phone: 'string',
         email: 'string',
+        slug: 'string',
         createdAt: 'dateTime',
         updatedAt: 'dateTime',
       },
     },
   })
   @ApiNotFoundResponse(httpErrors.notFoundError)
-  async getUserById(@Param('id') id: string): Promise<User> {
-    return await this.userService.getUserById(id);
+  async getUserBySlug(@Param('slug') slug: string): Promise<User> {
+    return await this.userService.getUserBySlug(slug);
   }
 
   @Put('/')
@@ -97,6 +99,7 @@ export class UserController {
         cpf: 'string',
         phone: 'string',
         email: 'string',
+        slug: 'string',
         createdAt: 'dateTime',
         updatedAt: 'dateTime',
       },
