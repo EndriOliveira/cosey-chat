@@ -6,9 +6,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import envConfig from './config/env.config';
 import prisma from './database/client';
 
-// TODO: Implementar slugify
-// TODO: Criar rota para apagar & desativar conta
-
 async function bootstrap() {
   const logger = WinstonModule.createLogger(winstonConfig);
   const app = await NestFactory.create(AppModule, { logger, cors: true });

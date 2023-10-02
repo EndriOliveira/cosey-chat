@@ -7,13 +7,12 @@ import { CreateRefreshTokenDto } from './dto/createRefreshToken.dto';
 export const createRefreshToken = async (
   createRefreshTokenDto: CreateRefreshTokenDto,
 ): Promise<RefreshToken> => {
-  const { token, userId } = createRefreshTokenDto;
+  const { userId } = createRefreshTokenDto;
 
   try {
     return await client.refreshToken.create({
       data: {
         id: uuidV4(),
-        token,
         userId,
       },
     });

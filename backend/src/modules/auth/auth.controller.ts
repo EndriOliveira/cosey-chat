@@ -1,4 +1,13 @@
-import { Body, Controller, Post, Get, UseGuards, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Get,
+  UseGuards,
+  Delete,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import {
   ApiBody,
   ApiResponse,
@@ -49,6 +58,7 @@ export class AuthController {
   })
   @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
   @ApiNotFoundResponse(httpErrors.notFoundError)
+  @HttpCode(HttpStatus.OK)
   async me(@GetUser() user: User): Promise<User> {
     return user;
   }
@@ -75,6 +85,7 @@ export class AuthController {
   @ApiBadRequestResponse(httpErrors.badRequestError)
   @ApiConflictResponse(httpErrors.conflictError)
   @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.CREATED)
   async signUp(@Body() createUserDto: CreateUserDto): Promise<User> {
     return await this.authService.createUser(createUserDto);
   }
@@ -95,6 +106,7 @@ export class AuthController {
   @ApiNotFoundResponse(httpErrors.notFoundError)
   @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
   @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
   async signIn(
     @Body() credentialsDto: CredentialsDto,
   ): Promise<SignInResponseDto> {
@@ -117,6 +129,7 @@ export class AuthController {
   @ApiNotFoundResponse(httpErrors.notFoundError)
   @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
   @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
   async deactivateAccount(
     @GetUser() user: User,
     @Body() deactivateAccountDto: DeactivateAccountDto,
@@ -143,6 +156,7 @@ export class AuthController {
   @ApiNotFoundResponse(httpErrors.notFoundError)
   @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
   @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
   async deleteAccount(
     @GetUser() user: User,
     @Body() deleteAccountDto: DeleteAccountDto,

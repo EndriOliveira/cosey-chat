@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -30,6 +31,7 @@ import { DeactivateAccountDto } from './dto/deactivateAccount.dto';
 import { validateDeactivateAccount } from './schemas/deactivateAccount.schema';
 import { DeleteAccountDto } from './dto/deleteAccount.dto';
 import { validateDeleteAccount } from './schemas/deleteAccount.schema';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class AuthService {
@@ -79,11 +81,27 @@ export class AuthService {
     validateSignIn(credentialsDto);
 
     const { email, password } = credentialsDto;
-    const user = await getOneUser({ email, active: true }, ['id', 'password']);
+    const user = await getOneUser({ email }, [
+      'id',
+      'password',
+      'active',
+      'updatedAt',
+    ]);
     if (!user) throw new UnauthorizedException('Invalid Credentials');
 
     const passwordMatch = await verifyPassword(password, user.password);
     if (!passwordMatch) throw new UnauthorizedException('Invalid Credentials');
+
+    if (!user.active) {
+      const today = dayjs(new Date());
+      const userUpdatedAt = dayjs(user.updatedAt);
+      const diff = today.diff(userUpdatedAt, 'days');
+      if (diff < 30) await updateUser(user.id, { active: true });
+      else
+        throw new ForbiddenException(
+          'Account deactivated for more than 30 days. Please, sign up as a new user',
+        );
+    }
 
     return {
       accessToken: generateJwt(

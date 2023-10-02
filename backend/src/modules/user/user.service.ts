@@ -15,41 +15,23 @@ import { UpdateUserDto } from './dto/updateUserDto';
 import { validateGetUsers } from './schema/getUsers.schema';
 import { validateUpdateUser } from './schema/updateUser.schema';
 import { getOneUser, getUsers, updateUser } from './user.repository';
-import { validateCPF } from 'src/utils/validate-cpf';
+import { validateCPF } from '../../utils/validate-cpf';
 
 @Injectable()
 export class UserService {
   async getUserById(id: string): Promise<User> {
-    const user = await getOneUser({ id, active: true }, [
-      'id',
-      'active',
-      'name',
-      'cpf',
-      'phone',
-      'email',
-      'slug',
-      'createdAt',
-      'updatedAt',
-    ]);
+    const user = await getOneUser({ id, active: true });
     if (!user) throw new NotFoundException('User Not Found');
 
+    delete user.password;
     return user;
   }
 
   async getUserBySlug(slug: string): Promise<User> {
-    const user = await getOneUser({ slug, active: true }, [
-      'id',
-      'active',
-      'name',
-      'cpf',
-      'phone',
-      'email',
-      'slug',
-      'createdAt',
-      'updatedAt',
-    ]);
+    const user = await getOneUser({ slug, active: true });
     if (!user) throw new NotFoundException('User Not Found');
 
+    delete user.password;
     return user;
   }
 

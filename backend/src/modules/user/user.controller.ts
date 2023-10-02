@@ -6,6 +6,8 @@ import {
   Put,
   Query,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiConflictResponse,
@@ -56,6 +58,7 @@ export class UserController {
     },
   })
   @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
   async getUsers(
     @Query() query: FindUsersQueryDto,
   ): Promise<FindUsersResponseDto> {
@@ -81,6 +84,8 @@ export class UserController {
     },
   })
   @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
   async getUserBySlug(@Param('slug') slug: string): Promise<User> {
     return await this.userService.getUserBySlug(slug);
   }
@@ -109,6 +114,7 @@ export class UserController {
   @ApiNotFoundResponse(httpErrors.notFoundError)
   @ApiConflictResponse(httpErrors.conflictError)
   @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
   async editUser(
     @GetUser() user: User,
     @Body() updateUserDto: UpdateUserDto,

@@ -27,7 +27,6 @@ model User {
 
 model RefreshToken {
   id        String   @id @db.VarChar(255) @default(uuid())
-  token     String   @db.VarChar(255)
   userId    String   @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,11 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { generateJwt } from '../../utils/jwt';
+import { generateJwt, verifyJwt } from '../../utils/jwt';
 import envConfig from '../../config/env.config';
 import {
   createRefreshToken,
   updateManyRefreshToken,
 } from './refreshToken.repository';
 import { UserService } from '../user/user.service';
+import { NewAccessTokenResponseDto } from './dto/newAccessToken.response.dto';
+import { NewAccessTokenDto } from './dto/newAccessToken.dto';
+import { validateCreateNewAccessToken } from './schemas/createNewAccessToken.schema';
 
 @Injectable()
 export class RefreshTokenService {
@@ -21,11 +24,31 @@ export class RefreshTokenService {
       envConfig.jwt.refreshExpirationDays,
     );
 
-    await createRefreshToken({ token, userId });
     await updateManyRefreshToken(
       { userId: user.id, active: true },
       { active: false },
     );
+    await createRefreshToken({ userId });
     return token;
+  }
+
+  async createNewAccessToken(
+    newAccessTokenDto: NewAccessTokenDto,
+  ): Promise<NewAccessTokenResponseDto> {
+    validateCreateNewAccessToken(newAccessTokenDto);
+
+    const { refreshToken } = newAccessTokenDto;
+    const response = verifyJwt(envConfig.jwt.refreshSecret, refreshToken);
+
+    const user = await this.userService.getUserById(response['id']);
+    if (!user) throw new NotFoundException('User Not Found');
+
+    return {
+      accessToken: generateJwt(
+        envConfig.jwt.refreshSecret,
+        { id: user.id },
+        envConfig.jwt.refreshExpirationDays,
+      ),
+    };
   }
 }

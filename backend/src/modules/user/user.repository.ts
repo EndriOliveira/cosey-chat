@@ -23,12 +23,12 @@ export const getOneUser = async <Key extends keyof User>(
     'createdAt',
     'updatedAt',
   ] as Key[],
-): Promise<User> => {
+): Promise<Pick<User, Key>> => {
   try {
     return (await client.user.findFirst({
       where,
       select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {}),
-    })) as User;
+    })) as Pick<User, Key>;
   } catch (error) {
     throw new InternalServerErrorException('Internal Server Error');
   }
