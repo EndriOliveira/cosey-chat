@@ -6,12 +6,12 @@ type ForgotPasswordBody = {
   name: string;
 };
 
-class ForgotPasswordResponse {
+type ForgotPasswordResponse = {
   to: string;
   from: string;
   subject: string;
   html: string;
-}
+};
 
 export const forgotPasswordTemplate = (
   forgotPasswordBody: ForgotPasswordBody,

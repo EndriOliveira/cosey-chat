@@ -32,6 +32,31 @@ import { FindUsersResponseDto } from './dto/findUsers.response.dto';
 export class UserController {
   constructor(private userService: UserService) {}
 
+  @Get('/:slug')
+  @ApiResponse({
+    status: 200,
+    description: 'User Found Successfully',
+    schema: {
+      example: {
+        id: 'string',
+        active: 'boolean',
+        name: 'string',
+        cpf: 'string',
+        phone: 'string',
+        email: 'string',
+        slug: 'string',
+        createdAt: 'dateTime',
+        updatedAt: 'dateTime',
+      },
+    },
+  })
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
+  async getUserBySlug(@Param('slug') slug: string): Promise<User> {
+    return await this.userService.getUserBySlug(slug);
+  }
+
   @Get('/')
   @ApiResponse({
     status: 200,
@@ -63,31 +88,6 @@ export class UserController {
     @Query() query: FindUsersQueryDto,
   ): Promise<FindUsersResponseDto> {
     return await this.userService.getUsers(query);
-  }
-
-  @Get('/:slug')
-  @ApiResponse({
-    status: 200,
-    description: 'User Found Successfully',
-    schema: {
-      example: {
-        id: 'string',
-        active: 'boolean',
-        name: 'string',
-        cpf: 'string',
-        phone: 'string',
-        email: 'string',
-        slug: 'string',
-        createdAt: 'dateTime',
-        updatedAt: 'dateTime',
-      },
-    },
-  })
-  @ApiNotFoundResponse(httpErrors.notFoundError)
-  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
-  @HttpCode(HttpStatus.OK)
-  async getUserBySlug(@Param('slug') slug: string): Promise<User> {
-    return await this.userService.getUserBySlug(slug);
   }
 
   @Put('/')

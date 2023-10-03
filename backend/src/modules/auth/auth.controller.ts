@@ -115,6 +115,48 @@ export class AuthController {
     return await this.authService.signIn(credentialsDto);
   }
 
+  @Post('/forgot-password')
+  @ApiResponse({
+    status: 200,
+    description: 'Code generated successfully',
+    schema: {
+      example: {
+        message: 'string',
+      },
+    },
+  })
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<MessageResponseDto> {
+    return await this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Post('/reset-password')
+  @ApiResponse({
+    status: 200,
+    description: 'Password changed successfully',
+    schema: {
+      example: {
+        message: 'string',
+      },
+    },
+  })
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<MessageResponseDto> {
+    return await this.authService.resetPassword(resetPasswordDto);
+  }
+
   @Delete('/deactivate')
   @UseGuards(AuthGuard())
   @ApiSecurity('JWT-auth')
@@ -164,47 +206,5 @@ export class AuthController {
     @Body() deleteAccountDto: DeleteAccountDto,
   ): Promise<MessageResponseDto> {
     return await this.authService.deleteAccount(user.id, deleteAccountDto);
-  }
-
-  @Post('/forgot-password')
-  @ApiResponse({
-    status: 200,
-    description: 'Code generated successfully',
-    schema: {
-      example: {
-        message: 'string',
-      },
-    },
-  })
-  @ApiBadRequestResponse(httpErrors.badRequestError)
-  @ApiNotFoundResponse(httpErrors.notFoundError)
-  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
-  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
-  @HttpCode(HttpStatus.OK)
-  async forgotPassword(
-    @Body() forgotPasswordDto: ForgotPasswordDto,
-  ): Promise<MessageResponseDto> {
-    return await this.authService.forgotPassword(forgotPasswordDto);
-  }
-
-  @Post('/reset-password')
-  @ApiResponse({
-    status: 200,
-    description: 'Password changed successfully',
-    schema: {
-      example: {
-        message: 'string',
-      },
-    },
-  })
-  @ApiBadRequestResponse(httpErrors.badRequestError)
-  @ApiNotFoundResponse(httpErrors.notFoundError)
-  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
-  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
-  @HttpCode(HttpStatus.OK)
-  async resetPassword(
-    @Body() resetPasswordDto: ResetPasswordDto,
-  ): Promise<MessageResponseDto> {
-    return await this.authService.resetPassword(resetPasswordDto);
   }
 }

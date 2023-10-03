@@ -12,6 +12,7 @@ const envVarsSchema = z.object({
   DATABASE_URL: z.string(),
   SENDGRID_API_KEY: z.string(),
   SENDGRID_EMAIL: z.string().email(),
+  FRONTEND_URL: z.string().url(),
 });
 
 const result = envVarsSchema.safeParse(process.env);
@@ -31,4 +32,5 @@ export default {
     key: result.data.SENDGRID_API_KEY,
     email: result.data.SENDGRID_EMAIL,
   },
+  frontendUrl: result.data.FRONTEND_URL,
 };

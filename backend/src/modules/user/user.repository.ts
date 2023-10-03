@@ -81,34 +81,34 @@ export const getUsers = async (
     else active = null;
   }
 
-  try {
-    const where: Prisma.UserWhereInput = {
-      AND: [
-        { active: active != null ? active : undefined },
-        { email: email ? { contains: email, mode: 'insensitive' } : undefined },
-        { name: name ? { contains: name, mode: 'insensitive' } : undefined },
-        {
-          slug: name
-            ? {
-                contains: slugify(name, {
-                  lower: true,
-                  replacement: '-',
-                  trim: true,
-                }),
-              }
-            : undefined,
-        },
-        {
-          cpf: cpf ? { contains: removeNonNumbersCharacters(cpf) } : undefined,
-        },
-        {
-          phone: phone
-            ? { contains: removeNonNumbersCharacters(phone) }
-            : undefined,
-        },
-      ],
-    } as Prisma.UserWhereInput;
+  const where = {
+    AND: [
+      { active: active != null ? active : undefined },
+      { email: email ? { contains: email, mode: 'insensitive' } : undefined },
+      { name: name ? { contains: name, mode: 'insensitive' } : undefined },
+      {
+        slug: name
+          ? {
+              contains: slugify(name, {
+                lower: true,
+                replacement: '-',
+                trim: true,
+              }),
+            }
+          : undefined,
+      },
+      {
+        cpf: cpf ? { contains: removeNonNumbersCharacters(cpf) } : undefined,
+      },
+      {
+        phone: phone
+          ? { contains: removeNonNumbersCharacters(phone) }
+          : undefined,
+      },
+    ],
+  } as Prisma.UserWhereInput;
 
+  try {
     const [users, count] = await client.$transaction([
       client.user.findMany({
         where,

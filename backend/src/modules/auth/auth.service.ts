@@ -37,6 +37,7 @@ import { forgotPasswordTemplate } from '../../templates/forgotPassword.template'
 import { CodeService } from '../code/code.service';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { validateResetPassword } from './schemas/resetPassword.schema';
+import { newUserTemplate } from '../../templates/newUser.template';
 
 @Injectable()
 export class AuthService {
@@ -79,11 +80,19 @@ export class AuthService {
       else userSlug = `${generateRandomCode()}-${slug}`;
     }
 
-    return await createUser({
+    const user = await createUser({
       ...createUserDto,
       slug: userSlug,
       password: await encryptPassword(createUserDto.password),
     });
+
+    const mail = newUserTemplate({
+      email: user.email,
+      name: user.name.split(' ')[0],
+    });
+    await this.sendGridService.sendMail(mail);
+
+    return user;
   }
 
   async signIn(credentialsDto: CredentialsDto): Promise<SignInResponseDto> {
