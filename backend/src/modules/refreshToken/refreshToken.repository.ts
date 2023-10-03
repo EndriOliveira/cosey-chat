@@ -21,6 +21,20 @@ export const createRefreshToken = async (
   }
 };
 
+export const getOneRefreshToken = async <Key extends keyof RefreshToken>(
+  where: Prisma.RefreshTokenWhereInput,
+  keys: Key[] = ['id', 'userId', 'createdAt', 'updatedAt', 'active'] as Key[],
+): Promise<Pick<RefreshToken, Key>> => {
+  try {
+    return (await client.refreshToken.findFirst({
+      where,
+      select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {}),
+    })) as Pick<RefreshToken, Key>;
+  } catch (error) {
+    throw new InternalServerErrorException('Internal Server Error');
+  }
+};
+
 export const updateManyRefreshToken = async (
   where: Prisma.RefreshTokenWhereInput,
   updateBody: Prisma.RefreshTokenUpdateInput,

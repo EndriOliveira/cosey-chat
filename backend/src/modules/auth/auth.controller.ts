@@ -30,6 +30,8 @@ import { SignInResponseDto } from './dto/signIn.response.dto';
 import { DeactivateAccountDto } from './dto/deactivateAccount.dto';
 import { MessageResponseDto } from '../../shared/dto/message.response.dto';
 import { DeleteAccountDto } from './dto/deleteAccount.dto';
+import { ForgotPasswordDto } from './dto/forgotPassword.dto';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -162,5 +164,47 @@ export class AuthController {
     @Body() deleteAccountDto: DeleteAccountDto,
   ): Promise<MessageResponseDto> {
     return await this.authService.deleteAccount(user.id, deleteAccountDto);
+  }
+
+  @Post('/forgot-password')
+  @ApiResponse({
+    status: 200,
+    description: 'Code generated successfully',
+    schema: {
+      example: {
+        message: 'string',
+      },
+    },
+  })
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<MessageResponseDto> {
+    return await this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Post('/reset-password')
+  @ApiResponse({
+    status: 200,
+    description: 'Password changed successfully',
+    schema: {
+      example: {
+        message: 'string',
+      },
+    },
+  })
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<MessageResponseDto> {
+    return await this.authService.resetPassword(resetPasswordDto);
   }
 }

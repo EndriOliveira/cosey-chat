@@ -20,6 +20,7 @@ model User {
   slug         String         @db.VarChar(255)
 
   message      Message[]      @relation("FK_Message_User_UserId")
+  code         Code[]         @relation("FK_Code_User_UserId")
   refreshToken RefreshToken[] @relation("FK_RefreshToken_User_UserId")
   user1        Chat[]         @relation("FK_Chat_User_User1")
   user2        Chat[]         @relation("FK_Chat_User_User2")
@@ -72,4 +73,15 @@ model Message {
   chat        Chat     @relation("FK_Message_Chat_ChatId", fields: [chatId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user        User     @relation("FK_Message_User_UserId", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   file        File     @relation("FK_Message_File_FileId", fields: [fileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Code {
+  id          String   @id @db.VarChar(255) @default(uuid())
+  userId      String   @db.VarChar(255)
+  code        String   @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  active      Boolean  @default(true)
+
+  user        User     @relation("FK_Code_User_UserId", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }

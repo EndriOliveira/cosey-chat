@@ -10,6 +10,8 @@ const envVarsSchema = z.object({
   JWT_REFRESH_TOKEN_SECRET: z.string().default('secret'),
   JWT_REFRESH_TOKEN_EXPIRATION_TIME: z.string().default('1d'),
   DATABASE_URL: z.string(),
+  SENDGRID_API_KEY: z.string(),
+  SENDGRID_EMAIL: z.string().email(),
 });
 
 const result = envVarsSchema.safeParse(process.env);
@@ -25,4 +27,8 @@ export default {
     refreshExpirationDays: result.data.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
   },
   databaseUrl: result.data.DATABASE_URL,
+  sendGrid: {
+    key: result.data.SENDGRID_API_KEY,
+    email: result.data.SENDGRID_EMAIL,
+  },
 };

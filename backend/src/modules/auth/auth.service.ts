@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -31,11 +30,21 @@ import { DeactivateAccountDto } from './dto/deactivateAccount.dto';
 import { validateDeactivateAccount } from './schemas/deactivateAccount.schema';
 import { DeleteAccountDto } from './dto/deleteAccount.dto';
 import { validateDeleteAccount } from './schemas/deleteAccount.schema';
-import * as dayjs from 'dayjs';
+import { ForgotPasswordDto } from './dto/forgotPassword.dto';
+import { validateForgotPassword } from './schemas/forgotPassword.schema';
+import { SendGridService } from '../sendGrid/sendGrid.service';
+import { forgotPasswordTemplate } from '../../templates/forgotPassword.template';
+import { CodeService } from '../code/code.service';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { validateResetPassword } from './schemas/resetPassword.schema';
 
 @Injectable()
 export class AuthService {
-  constructor(private refreshTokenService: RefreshTokenService) {}
+  constructor(
+    private refreshTokenService: RefreshTokenService,
+    private codeService: CodeService,
+    private sendGridService: SendGridService,
+  ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     validateCreateUser(createUserDto);
@@ -92,16 +101,7 @@ export class AuthService {
     const passwordMatch = await verifyPassword(password, user.password);
     if (!passwordMatch) throw new UnauthorizedException('Invalid Credentials');
 
-    if (!user.active) {
-      const today = dayjs(new Date());
-      const userUpdatedAt = dayjs(user.updatedAt);
-      const diff = today.diff(userUpdatedAt, 'days');
-      if (diff < 30) await updateUser(user.id, { active: true });
-      else
-        throw new ForbiddenException(
-          'Account deactivated for more than 30 days. Please, sign up as a new user',
-        );
-    }
+    if (!user.active) await updateUser(user.id, { active: true });
 
     return {
       accessToken: generateJwt(
@@ -170,6 +170,51 @@ export class AuthService {
     await deleteUser(user.id);
     return {
       message: 'Account and all data related deleted successfully',
+    };
+  }
+
+  async forgotPassword(
+    forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<MessageResponseDto> {
+    validateForgotPassword(forgotPasswordDto);
+
+    const { email } = forgotPasswordDto;
+    const user = await getOneUser({ email, active: true }, [
+      'id',
+      'email',
+      'name',
+    ]);
+    if (!user) throw new UnauthorizedException('Invalid Credentials');
+
+    const code = await this.codeService.createCode(user.id);
+
+    const mail = forgotPasswordTemplate({
+      email: user.email,
+      code: code,
+      name: user.name.split(' ')[0],
+    });
+    await this.sendGridService.sendMail(mail);
+    return {
+      message: 'Please verify your email for further information',
+    };
+  }
+
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<MessageResponseDto> {
+    validateResetPassword(resetPasswordDto);
+
+    const { code, password, passwordConfirmation } = resetPasswordDto;
+    if (password !== passwordConfirmation)
+      throw new BadRequestException('Passwords do not match');
+
+    const userCode = await this.codeService.validateCode(code);
+    await updateUser(userCode.userId, {
+      password: await encryptPassword(password),
+    });
+
+    return {
+      message: 'Password changed successfully',
     };
   }
 }

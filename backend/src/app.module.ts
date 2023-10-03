@@ -13,6 +13,7 @@ import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './config/wiston.config';
 import { JwtStrategy } from './modules/auth/middleware/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
+import { SendGridModule } from './modules/sendGrid/sendGrid.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { PassportModule } from '@nestjs/passport';
     RefreshTokenModule,
     MessageModule,
     FileModule,
+    SendGridModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     WinstonModule.forRoot(winstonConfig),
   ],
