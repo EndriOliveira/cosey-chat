@@ -43,6 +43,8 @@ import { DeleteAccountDto } from './dto/deleteAccount.dto';
 import { validateDeleteAccount } from './schemas/deleteAccount.schema';
 import { deleteAccountSuccessTemplate } from '../../templates/deleteAccountSuccess.template';
 import { deactivateAccountTemplate } from '../../templates/deactivateAccount.template';
+import { ChangePasswordDto } from './dto/changePassword.dto';
+import { validateChangePassword } from './schemas/changePassword.schema';
 
 @Injectable()
 export class AuthService {
@@ -283,5 +285,31 @@ export class AuthService {
     return {
       message: 'Password changed successfully',
     };
+  }
+
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<User> {
+    validateChangePassword(changePasswordDto);
+
+    const { password, newPassword, newPasswordConfirmation } =
+      changePasswordDto;
+
+    if (newPassword !== newPasswordConfirmation)
+      throw new BadRequestException('Passwords do not match');
+
+    const user = await getOneUser({ id: userId, active: true });
+    if (!user) throw new UnauthorizedException('Invalid Credentials');
+
+    const passwordMatch = await verifyPassword(password, user.password);
+    if (!passwordMatch) throw new UnauthorizedException('Invalid Credentials');
+
+    await updateUser(userId, {
+      password: await encryptPassword(newPassword),
+    });
+
+    delete user.password;
+    return user;
   }
 }

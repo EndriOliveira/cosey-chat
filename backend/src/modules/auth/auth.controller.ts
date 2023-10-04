@@ -34,6 +34,7 @@ import { SendDeleteAccountEmailDto } from './dto/sendDeleteAccountEmail.dto';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { DeleteAccountDto } from './dto/deleteAccount.dto';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -184,6 +185,38 @@ export class AuthController {
       user.id,
       sendDeleteAccountEmailDto,
     );
+  }
+
+  @Put('/change-password')
+  @UseGuards(AuthGuard())
+  @ApiSecurity('JWT-auth')
+  @ApiResponse({
+    status: 200,
+    description: 'Password changed successfully',
+    schema: {
+      example: {
+        id: 'string',
+        active: 'boolean',
+        name: 'string',
+        cpf: 'string',
+        phone: 'string',
+        email: 'string',
+        slug: 'string',
+        createdAt: 'dateTime',
+        updatedAt: 'dateTime',
+      },
+    },
+  })
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @GetUser() user: User,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<User> {
+    return await this.authService.changePassword(user.id, changePasswordDto);
   }
 
   @Put('/deactivate')

@@ -1,14 +1,11 @@
 import { z } from 'zod';
-import { CreateUserDto } from '../dto/createUser.dto';
 import { BadRequestException } from '@nestjs/common';
+import { ChangePasswordDto } from '../dto/changePassword.dto';
 
-export const validateCreateUser = (body: CreateUserDto) => {
+export const validateChangePassword = (body: ChangePasswordDto) => {
   const schema = z.object({
-    name: z.string().trim().min(2).max(255),
-    cpf: z.string().trim().min(11).max(255),
-    phone: z.string().trim().min(9).max(255),
-    email: z.string().trim().email().max(255),
-    password: z
+    password: z.string().trim().max(255),
+    newPassword: z
       .string()
       .trim()
       .min(6)
@@ -17,7 +14,7 @@ export const validateCreateUser = (body: CreateUserDto) => {
         'Password must have minimum 6 characters, at least 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character',
       )
       .max(255),
-    passwordConfirmation: z.string().trim().max(255),
+    newPasswordConfirmation: z.string().trim().max(255),
   });
   const validate = schema.safeParse(body);
   if (!validate['success'])
