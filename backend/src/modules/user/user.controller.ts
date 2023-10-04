@@ -33,6 +33,8 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Get('/:slug')
+  @UseGuards(AuthGuard())
+  @ApiSecurity('JWT-auth')
   @ApiResponse({
     status: 200,
     description: 'User Found Successfully',
@@ -58,6 +60,8 @@ export class UserController {
   }
 
   @Get('/')
+  @UseGuards(AuthGuard())
+  @ApiSecurity('JWT-auth')
   @ApiResponse({
     status: 200,
     description: 'Users Found Successfully',
@@ -95,7 +99,7 @@ export class UserController {
   @ApiSecurity('JWT-auth')
   @ApiResponse({
     status: 200,
-    description: 'Users Found Successfully',
+    description: 'User Updated Successfully',
     schema: {
       example: {
         id: 'string',
