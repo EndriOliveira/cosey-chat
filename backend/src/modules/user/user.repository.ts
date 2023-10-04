@@ -72,8 +72,8 @@ export const getUsers = async (
 ): Promise<FindUsersResponseDto> => {
   let { limit, page, active } = query;
   const { sortBy, sortType, cpf, email, name, phone } = query;
-  limit = limit || 10;
-  page = page || 1;
+  limit = Number(limit) || 10;
+  page = Number(page) || 1;
 
   if (active != undefined) {
     if (/^(true)$/gim.test(`${active}`.replace(' ', ''))) active = true;

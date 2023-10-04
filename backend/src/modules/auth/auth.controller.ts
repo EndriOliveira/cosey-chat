@@ -4,6 +4,7 @@ import {
   Post,
   Get,
   UseGuards,
+  Put,
   Delete,
   HttpCode,
   HttpStatus,
@@ -29,9 +30,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { SignInResponseDto } from './dto/signIn.response.dto';
 import { DeactivateAccountDto } from './dto/deactivateAccount.dto';
 import { MessageResponseDto } from '../../shared/dto/message.response.dto';
-import { DeleteAccountDto } from './dto/deleteAccount.dto';
+import { SendDeleteAccountEmailDto } from './dto/sendDeleteAccountEmail.dto';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { DeleteAccountDto } from './dto/deleteAccount.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -157,7 +159,34 @@ export class AuthController {
     return await this.authService.resetPassword(resetPasswordDto);
   }
 
-  @Delete('/deactivate')
+  @Post('/send-delete-account-email')
+  @UseGuards(AuthGuard())
+  @ApiSecurity('JWT-auth')
+  @ApiResponse({
+    status: 200,
+    description: 'Email sent successfully',
+    schema: {
+      example: {
+        message: 'string',
+      },
+    },
+  })
+  @ApiBadRequestResponse(httpErrors.badRequestError)
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
+  async sendDeleteAccountEmail(
+    @GetUser() user: User,
+    @Body() sendDeleteAccountEmailDto: SendDeleteAccountEmailDto,
+  ): Promise<MessageResponseDto> {
+    return await this.authService.sendDeleteAccountEmail(
+      user.id,
+      sendDeleteAccountEmailDto,
+    );
+  }
+
+  @Put('/deactivate')
   @UseGuards(AuthGuard())
   @ApiSecurity('JWT-auth')
   @ApiResponse({
@@ -189,7 +218,7 @@ export class AuthController {
   @ApiSecurity('JWT-auth')
   @ApiResponse({
     status: 200,
-    description: 'Deleted successfully',
+    description: 'Account deleted successfully',
     schema: {
       example: {
         message: 'string',

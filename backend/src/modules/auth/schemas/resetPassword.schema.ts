@@ -4,7 +4,7 @@ import { ResetPasswordDto } from '../dto/resetPassword.dto';
 
 export const validateResetPassword = (body: ResetPasswordDto) => {
   const schema = z.object({
-    code: z.string().trim(),
+    code: z.string().trim().max(255),
     password: z
       .string()
       .trim()

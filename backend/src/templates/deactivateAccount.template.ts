@@ -1,25 +1,24 @@
 import envConfig from '../config/env.config';
 
-type ForgotPasswordBody = {
+type DeactivateAccountBody = {
   email: string;
-  code: string;
   name: string;
 };
 
-type ForgotPasswordResponse = {
+type DeactivateAccountResponse = {
   to: string;
   from: string;
   subject: string;
   html: string;
 };
 
-export const forgotPasswordTemplate = (
-  forgotPasswordBody: ForgotPasswordBody,
-): ForgotPasswordResponse => {
+export const deactivateAccountTemplate = (
+  deactivateAccountBody: DeactivateAccountBody,
+): DeactivateAccountResponse => {
   const mail = {
-    to: forgotPasswordBody.email,
+    to: deactivateAccountBody.email,
     from: envConfig.sendGrid.email,
-    subject: 'Recuperação de senha',
+    subject: 'Conta desativada com sucesso',
     html: `
       <!DOCTYPE html>
       <html
@@ -122,12 +121,12 @@ export const forgotPasswordTemplate = (
         <body style="background-color: #f9f9f9">
           <div style="background-color: #f9f9f9">
             <!--[if mso | IE]>
-                            <table
-                              align="center" border="0" cellpadding="0" cellspacing="0" style="width:600px;" width="600"
-                            >
-                              <tr>
-                                <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
-                            <![endif]-->
+                                <table
+                                  align="center" border="0" cellpadding="0" cellspacing="0" style="width:600px;" width="600"
+                                >
+                                  <tr>
+                                    <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+                                <![endif]-->
       
             <div
               style="
@@ -174,16 +173,16 @@ export const forgotPasswordTemplate = (
             </div>
       
             <!--[if mso | IE]>
-                                </td>
-                              </tr>
-                            </table>
-                            
-                            <table
-                              align="center" border="0" cellpadding="0" cellspacing="0" style="width:600px;" width="600"
-                            >
-                              <tr>
-                                <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
-                            <![endif]-->
+                                    </td>
+                                  </tr>
+                                </table>
+                                
+                                <table
+                                  align="center" border="0" cellpadding="0" cellspacing="0" style="width:600px;" width="600"
+                                >
+                                  <tr>
+                                    <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+                                <![endif]-->
       
             <div
               style="
@@ -215,14 +214,14 @@ export const forgotPasswordTemplate = (
                       "
                     >
                       <!--[if mso | IE]>
-                                        <table role="presentation" border="0" cellpadding="0" cellspacing="0">
-                                      
-                              <tr>
-                            
-                                  <td
-                                    style="vertical-align:bottom;width:600px;"
-                                  >
-                                <![endif]-->
+                                            <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                                          
+                                  <tr>
+                                
+                                      <td
+                                        style="vertical-align:bottom;width:600px;"
+                                      >
+                                    <![endif]-->
       
                       <div
                         class="mj-column-per-100 outlook-group-fix"
@@ -263,7 +262,7 @@ export const forgotPasswordTemplate = (
                                   color: #555;
                                 "
                               >
-                                Olá ${forgotPasswordBody.name},
+                                Olá, ${deactivateAccountBody.name}!
                               </div>
                             </td>
                           </tr>
@@ -287,7 +286,7 @@ export const forgotPasswordTemplate = (
                                   color: #555;
                                 "
                               >
-                                Parece que você está tentando recuperar a sua senha.
+                                Sua conta foi desativada na plataforma.
                               </div>
                             </td>
                           </tr>
@@ -312,59 +311,10 @@ export const forgotPasswordTemplate = (
                                   color: #555;
                                 "
                               >
-                                Para criar uma nova senha, forneça o código abaixo,
-                                mais a sua nova senha:
+                                Você não receberá novas atualizações e seus contatos não poderão interagir com você. Caso mude de ideia, você pode logar novamente e reativar sua conta.
                               </div>
                             </td>
                           </tr>
-                          <tr>
-                            <td
-                              align="center"
-                              style="
-                                font-size: 0px;
-                                padding: 10px 25px;
-                                padding-top: 30px;
-                                padding-bottom: 30px;
-                                word-break: break-word;
-                              "
-                            >
-                              <table
-                                align="center"
-                                border="0"
-                                cellpadding="0"
-                                cellspacing="0"
-                                role="presentation"
-                                style="border-collapse: separate; line-height: 100%"
-                              >
-                                <tr>
-                                  <td
-                                    align="center"
-                                    style="
-                                      font-size: 0px;
-                                      padding: 10px 25px;
-                                      padding-bottom: 20px;
-                                      word-break: break-word;
-                                    "
-                                  >
-                                    <div
-                                      style="
-                                        font-family: 'Helvetica Neue', Arial,
-                                          sans-serif;
-                                        font-size: 38px;
-                                        font-weight: bold;
-                                        line-height: 1;
-                                        text-align: center;
-                                        color: #4287f5;
-                                      "
-                                    >
-                                      ${forgotPasswordBody.code}
-                                    </div>
-                                  </td>
-                                </tr>
-                              </table>
-                            </td>
-                          </tr>
-      
                           <tr>
                             <td
                               align="center"
@@ -384,9 +334,7 @@ export const forgotPasswordTemplate = (
                                   color: #7f8fa4;
                                 "
                               >
-                                Se você não solicitou a recuperação de senha,
-                                desconsidere este e-mail e não se preocupe, seus dados
-                                continuam seguros.
+                                Atenciosamente, Equipe Cosey.
                               </div>
                             </td>
                           </tr>

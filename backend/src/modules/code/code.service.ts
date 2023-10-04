@@ -17,13 +17,24 @@ export class CodeService {
     const user = await this.userService.getUserById(userId);
     if (!user) throw new NotFoundException('User Not Found');
 
-    let code = generateRandomCode();
+    let code = generateRandomCode({
+      length: 6,
+      lowerCaseLetters: true,
+      upperCaseLetters: true,
+      numbers: true,
+    });
     let codeExists = true;
 
     while (codeExists) {
       const userCodeExists = await getOneCode({ code, active: true });
       if (!userCodeExists) codeExists = false;
-      else code = generateRandomCode();
+      else
+        code = generateRandomCode({
+          length: 6,
+          lowerCaseLetters: true,
+          upperCaseLetters: true,
+          numbers: true,
+        });
     }
 
     await updateManyCode({ userId: user.id, active: true }, { active: false });

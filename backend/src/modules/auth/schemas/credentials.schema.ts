@@ -4,7 +4,7 @@ import { CredentialsDto } from '../dto/credentials.dto';
 
 export const validateSignIn = (body: CredentialsDto) => {
   const schema = z.object({
-    email: z.string().trim().email(),
+    email: z.string().trim().email().max(255),
     password: z.string().trim().max(255),
   });
   const validate = schema.safeParse(body);

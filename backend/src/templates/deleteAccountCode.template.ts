@@ -1,25 +1,25 @@
 import envConfig from '../config/env.config';
 
-type ForgotPasswordBody = {
+type DeleteAccountCodeBody = {
   email: string;
   code: string;
   name: string;
 };
 
-type ForgotPasswordResponse = {
+type DeleteAccountCodeResponse = {
   to: string;
   from: string;
   subject: string;
   html: string;
 };
 
-export const forgotPasswordTemplate = (
-  forgotPasswordBody: ForgotPasswordBody,
-): ForgotPasswordResponse => {
+export const deleteAccountCodeTemplate = (
+  deleteAccountCodeBody: DeleteAccountCodeBody,
+): DeleteAccountCodeResponse => {
   const mail = {
-    to: forgotPasswordBody.email,
+    to: deleteAccountCodeBody.email,
     from: envConfig.sendGrid.email,
-    subject: 'Recuperação de senha',
+    subject: 'Exclusão de conta',
     html: `
       <!DOCTYPE html>
       <html
@@ -263,31 +263,7 @@ export const forgotPasswordTemplate = (
                                   color: #555;
                                 "
                               >
-                                Olá ${forgotPasswordBody.name},
-                              </div>
-                            </td>
-                          </tr>
-      
-                          <tr>
-                            <td
-                              align="center"
-                              style="
-                                font-size: 0px;
-                                padding: 10px 25px;
-                                padding-bottom: 40px;
-                                word-break: break-word;
-                              "
-                            >
-                              <div
-                                style="
-                                  font-family: 'Helvetica Neue', Arial, sans-serif;
-                                  font-size: 18px;
-                                  line-height: 1;
-                                  text-align: center;
-                                  color: #555;
-                                "
-                              >
-                                Parece que você está tentando recuperar a sua senha.
+                                Olá ${deleteAccountCodeBody.name},
                               </div>
                             </td>
                           </tr>
@@ -312,8 +288,7 @@ export const forgotPasswordTemplate = (
                                   color: #555;
                                 "
                               >
-                                Para criar uma nova senha, forneça o código abaixo,
-                                mais a sua nova senha:
+                                Para deletar a sua conta, forneça o código abaixo:
                               </div>
                             </td>
                           </tr>
@@ -357,7 +332,7 @@ export const forgotPasswordTemplate = (
                                         color: #4287f5;
                                       "
                                     >
-                                      ${forgotPasswordBody.code}
+                                      ${deleteAccountCodeBody.code}
                                     </div>
                                   </td>
                                 </tr>
@@ -384,7 +359,7 @@ export const forgotPasswordTemplate = (
                                   color: #7f8fa4;
                                 "
                               >
-                                Se você não solicitou a recuperação de senha,
+                                Se você não solicitou a exclusão de senha,
                                 desconsidere este e-mail e não se preocupe, seus dados
                                 continuam seguros.
                               </div>

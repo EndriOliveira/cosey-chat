@@ -4,7 +4,7 @@ import { ForgotPasswordDto } from '../dto/forgotPassword.dto';
 
 export const validateForgotPassword = (body: ForgotPasswordDto) => {
   const schema = z.object({
-    email: z.string().trim().email(),
+    email: z.string().trim().email().max(255),
   });
   const validate = schema.safeParse(body);
   if (!validate['success'])

@@ -7,7 +7,7 @@ export const validateCreateUser = (body: CreateUserDto) => {
     name: z.string().trim().min(2).max(255),
     cpf: z.string().trim().min(11).max(255),
     phone: z.string().trim().min(9).max(255),
-    email: z.string().trim().email(),
+    email: z.string().trim().email().max(255),
     password: z
       .string()
       .trim()

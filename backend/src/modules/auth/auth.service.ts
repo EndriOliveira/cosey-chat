@@ -28,8 +28,8 @@ import { generateRandomCode } from '../../utils/generateRandomCode';
 import { validateCPF } from '../../utils/validate-cpf';
 import { DeactivateAccountDto } from './dto/deactivateAccount.dto';
 import { validateDeactivateAccount } from './schemas/deactivateAccount.schema';
-import { DeleteAccountDto } from './dto/deleteAccount.dto';
-import { validateDeleteAccount } from './schemas/deleteAccount.schema';
+import { SendDeleteAccountEmailDto } from './dto/sendDeleteAccountEmail.dto';
+import { validateSendDeleteAccountEmail } from './schemas/sendDeleteAccountEmail.schema';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { validateForgotPassword } from './schemas/forgotPassword.schema';
 import { SendGridService } from '../sendGrid/sendGrid.service';
@@ -38,6 +38,11 @@ import { CodeService } from '../code/code.service';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { validateResetPassword } from './schemas/resetPassword.schema';
 import { newUserTemplate } from '../../templates/newUser.template';
+import { deleteAccountCodeTemplate } from '../../templates/deleteAccountCode.template';
+import { DeleteAccountDto } from './dto/deleteAccount.dto';
+import { validateDeleteAccount } from './schemas/deleteAccount.schema';
+import { deleteAccountSuccessTemplate } from '../../templates/deleteAccountSuccess.template';
+import { deactivateAccountTemplate } from '../../templates/deactivateAccount.template';
 
 @Injectable()
 export class AuthService {
@@ -55,7 +60,11 @@ export class AuthService {
       trim: true,
       replacement: '-',
     });
-    let userSlug = `${generateRandomCode()}-${slug}`;
+    let userSlug = `${generateRandomCode({
+      length: 6,
+      lowerCaseLetters: true,
+      numbers: true,
+    })}-${slug}`;
 
     const { password, passwordConfirmation } = createUserDto;
     if (password !== passwordConfirmation)
@@ -77,7 +86,12 @@ export class AuthService {
         slug: userSlug,
       });
       if (!user) userSlugExists = false;
-      else userSlug = `${generateRandomCode()}-${slug}`;
+      else
+        userSlug = `${generateRandomCode({
+          length: 6,
+          lowerCaseLetters: true,
+          numbers: true,
+        })}-${slug}`;
     }
 
     const user = await createUser({
@@ -116,7 +130,7 @@ export class AuthService {
       accessToken: generateJwt(
         envConfig.jwt.accessSecret,
         { id: user.id },
-        envConfig.jwt.accessExpirationMinutes,
+        envConfig.jwt.accessExpirationTime,
       ),
       refreshToken: await this.refreshTokenService.createRefreshToken(user.id),
     };
@@ -131,6 +145,8 @@ export class AuthService {
     const user = await getOneUser({ id: userId, active: true }, [
       'id',
       'password',
+      'email',
+      'name',
     ]);
     if (!user) throw new NotFoundException('User not found');
 
@@ -147,24 +163,31 @@ export class AuthService {
       throw new UnauthorizedException('Invalid Credentials');
 
     await updateUser(user.id, { active: false });
+    const mail = deactivateAccountTemplate({
+      email: user.email,
+      name: user.name.split(' ')[0],
+    });
+    await this.sendGridService.sendMail(mail);
     return {
-      message: 'Account deactivated Successfully',
+      message: 'Account deactivated successfully',
     };
   }
 
-  async deleteAccount(
+  async sendDeleteAccountEmail(
     userId: string,
-    deleteAccountDto: DeleteAccountDto,
+    sendDeleteAccountEmailDto: SendDeleteAccountEmailDto,
   ): Promise<MessageResponseDto> {
-    validateDeleteAccount(deleteAccountDto);
+    validateSendDeleteAccountEmail(sendDeleteAccountEmailDto);
 
-    const { email, password, passwordConfirmation } = deleteAccountDto;
+    const { email, password, passwordConfirmation } = sendDeleteAccountEmailDto;
     if (password !== passwordConfirmation)
       throw new BadRequestException('Passwords do not match');
 
     const user = await getOneUser({ id: userId, email, active: true }, [
       'id',
       'password',
+      'email',
+      'name',
     ]);
     if (!user) throw new UnauthorizedException('Invalid Credentials');
 
@@ -176,7 +199,42 @@ export class AuthService {
     if (!passwordMatch || !passwordConfirmationMatch)
       throw new UnauthorizedException('Invalid Credentials');
 
-    await deleteUser(user.id);
+    const code = await this.codeService.createCode(user.id);
+
+    const mail = deleteAccountCodeTemplate({
+      email: user.email,
+      code: code,
+      name: user.name.split(' ')[0],
+    });
+    await this.sendGridService.sendMail(mail);
+    return {
+      message: 'Please verify your email for further information',
+    };
+  }
+
+  async deleteAccount(
+    userId: string,
+    deleteAccountDto: DeleteAccountDto,
+  ): Promise<MessageResponseDto> {
+    validateDeleteAccount(deleteAccountDto);
+
+    const { code } = deleteAccountDto;
+    await this.codeService.validateCode(code);
+
+    const user = await getOneUser({ id: userId, active: true }, [
+      'id',
+      'email',
+      'name',
+    ]);
+    if (!user) throw new NotFoundException('User not found');
+
+    await deleteUser(userId);
+
+    const mail = deleteAccountSuccessTemplate({
+      email: user.email,
+      name: user.name.split(' ')[0],
+    });
+    await this.sendGridService.sendMail(mail);
     return {
       message: 'Account and all data related deleted successfully',
     };

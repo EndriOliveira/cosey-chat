@@ -40,7 +40,7 @@ export class RefreshTokenService {
     const token = generateJwt(
       envConfig.jwt.refreshSecret,
       { id: refreshToken.id },
-      envConfig.jwt.refreshExpirationDays,
+      envConfig.jwt.refreshExpirationTime,
     );
     return token;
   }
@@ -67,9 +67,9 @@ export class RefreshTokenService {
 
     return {
       accessToken: generateJwt(
-        envConfig.jwt.refreshSecret,
+        envConfig.jwt.accessSecret,
         { id: user.id },
-        envConfig.jwt.refreshExpirationDays,
+        envConfig.jwt.accessExpirationTime,
       ),
     };
   }

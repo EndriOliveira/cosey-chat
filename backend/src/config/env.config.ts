@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const envVarsSchema = z.object({
   NODE_ENV: z
-    .enum(['development', 'test', 'production'])
+    .enum(['development', 'homolog', 'production'])
     .default('development'),
   PORT: z.string().default('3000'),
   JWT_ACCESS_TOKEN_SECRET: z.string().default('secret'),
@@ -23,9 +23,9 @@ export default {
   port: result.data.PORT,
   jwt: {
     accessSecret: result.data.JWT_ACCESS_TOKEN_SECRET,
-    accessExpirationMinutes: result.data.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
+    accessExpirationTime: result.data.JWT_ACCESS_TOKEN_EXPIRATION_TIME,
     refreshSecret: result.data.JWT_REFRESH_TOKEN_SECRET,
-    refreshExpirationDays: result.data.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
+    refreshExpirationTime: result.data.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
   },
   databaseUrl: result.data.DATABASE_URL,
   sendGrid: {

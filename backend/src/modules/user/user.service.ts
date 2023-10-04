@@ -76,14 +76,23 @@ export class UserService {
         trim: true,
         replacement: '-',
       });
-      userSlug = `${generateRandomCode()}-${slug}`;
+      userSlug = `${generateRandomCode({
+        length: 6,
+        lowerCaseLetters: true,
+        numbers: true,
+      })}-${slug}`;
       let userSlugExists = true;
       while (userSlugExists) {
         const user = await getOneUser({
           slug: userSlug,
         });
         if (!user) userSlugExists = false;
-        else userSlug = `${generateRandomCode()}-${slug}`;
+        else
+          userSlug = `${generateRandomCode({
+            length: 6,
+            lowerCaseLetters: true,
+            numbers: true,
+          })}-${slug}`;
       }
     }
 
