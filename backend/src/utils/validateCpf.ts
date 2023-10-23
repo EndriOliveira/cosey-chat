@@ -2,6 +2,8 @@ import { BadRequestException } from '@nestjs/common';
 
 export const validateCPF = (cpf: string): boolean => {
   cpf = cpf.replace(/\.|-/g, '');
+  if (!/^(?!([0-9])\1{10}$)\d{11}$/.test(cpf))
+    throw new BadRequestException('Invalid CPF');
   if (!validateFirstDigit(cpf)) throw new BadRequestException('Invalid CPF');
   if (!validateSecondDigit(cpf)) throw new BadRequestException('Invalid CPF');
   return true;

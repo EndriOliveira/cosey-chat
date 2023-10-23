@@ -15,7 +15,7 @@ import { UpdateUserDto } from './dto/updateUserDto';
 import { validateGetUsers } from './schema/getUsers.schema';
 import { validateUpdateUser } from './schema/updateUser.schema';
 import { getOneUser, getUsers, updateUser } from './user.repository';
-import { validateCPF } from '../../utils/validate-cpf';
+import { validateCPF } from '../../utils/validateCpf';
 
 @Injectable()
 export class UserService {

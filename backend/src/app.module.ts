@@ -10,7 +10,7 @@ import { MessageModule } from './modules/message/message.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { WinstonInterceptor } from './interceptors/winston.interceptor';
 import { WinstonModule } from 'nest-winston';
-import { winstonConfig } from './config/wiston.config';
+import { winstonConfig } from './config/winston.config';
 import { JwtStrategy } from './modules/auth/middleware/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { SendGridModule } from './modules/sendGrid/sendGrid.module';

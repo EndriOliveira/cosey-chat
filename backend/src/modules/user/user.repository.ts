@@ -44,8 +44,8 @@ export const createUser = async (
       data: {
         id: uuidV4(),
         name,
-        phone: removeNonNumbersCharacters(phone),
-        cpf: removeNonNumbersCharacters(cpf),
+        phone,
+        cpf,
         email,
         slug,
         password,

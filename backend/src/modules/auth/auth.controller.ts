@@ -187,6 +187,26 @@ export class AuthController {
     );
   }
 
+  @Post('/logout')
+  @UseGuards(AuthGuard())
+  @ApiSecurity('JWT-auth')
+  @ApiResponse({
+    status: 200,
+    description: 'Logged out successfully',
+    schema: {
+      example: {
+        message: 'string',
+      },
+    },
+  })
+  @ApiNotFoundResponse(httpErrors.notFoundError)
+  @ApiUnauthorizedResponse(httpErrors.unauthorizedError)
+  @ApiInternalServerErrorResponse(httpErrors.internalServerError)
+  @HttpCode(HttpStatus.OK)
+  async logout(@GetUser() user: User): Promise<MessageResponseDto> {
+    return await this.authService.logout(user.id);
+  }
+
   @Put('/change-password')
   @UseGuards(AuthGuard())
   @ApiSecurity('JWT-auth')

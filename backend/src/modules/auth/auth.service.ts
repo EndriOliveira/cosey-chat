@@ -25,7 +25,7 @@ import { User } from '@prisma/client';
 import { MessageResponseDto } from '../../shared/dto/message.response.dto';
 import slugify from 'slugify';
 import { generateRandomCode } from '../../utils/generateRandomCode';
-import { validateCPF } from '../../utils/validate-cpf';
+import { validateCPF } from '../../utils/validateCpf';
 import { DeactivateAccountDto } from './dto/deactivateAccount.dto';
 import { validateDeactivateAccount } from './schemas/deactivateAccount.schema';
 import { SendDeleteAccountEmailDto } from './dto/sendDeleteAccountEmail.dto';
@@ -45,6 +45,7 @@ import { deleteAccountSuccessTemplate } from '../../templates/deleteAccountSucce
 import { deactivateAccountTemplate } from '../../templates/deactivateAccount.template';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { validateChangePassword } from './schemas/changePassword.schema';
+import { updateManyRefreshToken } from '../refreshToken/refreshToken.repository';
 
 @Injectable()
 export class AuthService {
@@ -98,8 +99,10 @@ export class AuthService {
 
     const user = await createUser({
       ...createUserDto,
-      slug: userSlug,
+      phone: removeNonNumbersCharacters(createUserDto.phone),
+      cpf: removeNonNumbersCharacters(createUserDto.cpf),
       password: await encryptPassword(createUserDto.password),
+      slug: userSlug,
     });
 
     const mail = newUserTemplate({
@@ -211,6 +214,17 @@ export class AuthService {
     await this.sendGridService.sendMail(mail);
     return {
       message: 'Please verify your email for further information',
+    };
+  }
+
+  async logout(userId: string): Promise<MessageResponseDto> {
+    const user = await getOneUser({ id: userId, active: true }, ['id']);
+    if (!user) throw new UnauthorizedException('Invalid Credentials');
+
+    await updateManyRefreshToken({ userId: user.id }, { active: false });
+
+    return {
+      message: 'Logged out successfully',
     };
   }
 

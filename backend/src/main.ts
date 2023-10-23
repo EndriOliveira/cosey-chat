@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { WinstonModule } from 'nest-winston';
-import { winstonConfig } from './config/wiston.config';
+import { winstonConfig } from './config/winston.config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import envConfig from './config/env.config';
 import prisma from './database/client';
